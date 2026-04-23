@@ -76,14 +76,14 @@ void DeviceFSInit(void)
     smb_SessionSetupAndX(ServerCapabilities);
 
     // Then tree connect on the share resource
-    sprintf(tmp_str, "\\%s\%s", cdvdman_settings.smb_ip, cdvdman_settings.smb_share);
+    sprintf(tmp_str, "\\\\%s\\%s", cdvdman_settings.smb_ip, cdvdman_settings.smb_share);
     smb_TreeConnectAndX(tmp_str);
 
     if (!(cdvdman_settings.common.flags & IOPCORE_SMB_FORMAT_USBLD)) {
         if (cdvdman_settings.smb_prefix[0]) {
-            sprintf(tmp_str, "\%s\%s\%s", cdvdman_settings.smb_prefix, cdvdman_settings.common.media == 0x12 ? "CD" : "DVD", cdvdman_settings.filename);
+            sprintf(tmp_str, "\\%s\\%s\\%s", cdvdman_settings.smb_prefix, cdvdman_settings.common.media == 0x12 ? "CD" : "DVD", cdvdman_settings.filename);
         } else {
-            sprintf(tmp_str, "\%s\%s", cdvdman_settings.common.media == 0x12 ? "CD" : "DVD", cdvdman_settings.filename);
+            sprintf(tmp_str, "\\%s\\%s", cdvdman_settings.common.media == 0x12 ? "CD" : "DVD", cdvdman_settings.filename);
         }
 
         smb_OpenAndX(tmp_str, (u8 *)&cdvdman_settings.FIDs[i++], 0);
@@ -91,14 +91,13 @@ void DeviceFSInit(void)
         // Open all parts files
         for (i = 0; i < cdvdman_settings.common.NumParts; i++) {
             if (cdvdman_settings.smb_prefix[0])
-                sprintf(tmp_str, "\%s\%s.%02x", cdvdman_settings.smb_prefix, cdvdman_settings.filename, i);
+                sprintf(tmp_str, "\\%s\\%s.%02x", cdvdman_settings.smb_prefix, cdvdman_settings.filename, i);
             else
-                sprintf(tmp_str, "\%s.%02x", cdvdman_settings.filename, i);
+                sprintf(tmp_str, "\\%s.%02x", cdvdman_settings.filename, i);
 
             smb_OpenAndX(tmp_str, (u8 *)&cdvdman_settings.FIDs[i], 0);
         }
     }
-    DelayThread(400000);
 }
 
 void DeviceLock(void)
@@ -123,8 +122,6 @@ int DeviceReadSectors(u64 lsn, void *buffer, unsigned int sectors)
     u8 *p = (u8 *)buffer;
     int rv = SCECdErNO;
 
-    DelayThread(120000);
-
     lbound = 0;
     ubound = (cdvdman_settings.common.NumParts > 1) ? 0x80000 : 0xFFFFFFFF;
     offslsn = (u32)lsn;
@@ -145,8 +142,6 @@ int DeviceReadSectors(u64 lsn, void *buffer, unsigned int sectors)
                 rv = SCECdErREAD;
                 break;
             }
-            
-            DelayThread(sectors_to_read * 10500);
 
             r += sectors_to_read * 2048;
             offslsn += sectors_to_read;
